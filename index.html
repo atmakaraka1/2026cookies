@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Girl Scout Cookie Orders</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: #2d3748;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .collapsible-section {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .collapsible-header::after {
+            content: '▼';
+            font-size: 0.8em;
+            transition: transform 0.3s;
+        }
+
+        .collapsible-section.collapsed .collapsible-header::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-section.collapsed .collapsible-content {
+            max-height: 0;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .form-section h2 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #4a5568;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="tel"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="tel"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .cookies-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .cookie-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .cookie-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .cookie-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quantity-control button {
+            width: 35px;
+            height: 35px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 6px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .quantity-control button:hover {
+            background: #5568d3;
+        }
+
+        .quantity-control input {
+            width: 60px;
+            text-align: center;
+            padding: 8px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #38a169;
+        }
+
+        .btn-secondary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5568d3;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .orders-list {
+            margin-top: 30px;
+        }
+
+        .order-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            margin-bottom: 15px;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .order-info h3 {
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .order-info p {
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        .order-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .order-actions button {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .order-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .order-item {
+            background: #f7fafc;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .order-item strong {
+            color: #2d3748;
+        }
+
+        .order-total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #e2e8f0;
+            text-align: right;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .receipt {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .receipt-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 20px;
+        }
+
+        .receipt-header h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .receipt-section {
+            margin-bottom: 20px;
+        }
+
+        .receipt-section h3 {
+            border-bottom: 1px solid #000;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        .receipt-line {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .receipt-total {
+            border-top: 2px solid #000;
+            margin-top: 20px;
+            padding-top: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .receipt-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #000;
+            font-size: 0.9em;
+        }
+
+        .qr-code-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .qr-code-container canvas,
+        .qr-code-container img {
+            margin: 10px auto;
+            display: block;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .modal-content.large {
+            max-width: 1200px;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .modal-header h2 {
+            color: #2d3748;
+            font-size: 1.5em;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .close {
+            color: #718096;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #2d3748;
+        }
+
+        .overview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .overview-table th,
+        .overview-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .overview-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+            position: sticky;
+            top: 0;
+        }
+
+        .overview-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .overview-table input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-paid {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-unpaid {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .container {
+                box-shadow: none;
+            }
+            .actions, .order-actions {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍪 Girl Scout Cookie Orders</h1>
+            <img src="https://www.girlscoutsww.org/content/dam/girlscoutsww-redesign/images/council-logo/girlscoutsww-green.png" alt="Girl Scouts" style="max-width: 300px; margin-top: 10px;">
+        </header>
+
+        <div class="content">
+            <div class="main-grid">
+                <!-- Left Column: Scout Info and New Order Form -->
+                <div class="left-column">
+                    <div class="form-section">
+                        <h2>Scout Information</h2>
+                        <div class="form-group">
+                            <label for="defaultScoutName">Scout Name</label>
+                            <input type="text" id="defaultScoutName" placeholder="Enter scout name">
+                        </div>
+                        <div class="form-group">
+                            <label for="defaultScoutQR">Scout Cookie Site URL</label>
+                            <input type="text" id="defaultScoutQR" placeholder="https://digitalcookie.girlscouts.org/scout/...">
+                        </div>
+                        <button class="btn-primary" onclick="saveDefaultScoutInfo()">Save Scout Info</button>
+                        <button class="btn-secondary" onclick="applyDefaultsToAll()">Apply to All Orders</button>
+                    </div>
+
+                    <div style="text-align: center; margin: 20px 0;">
+                        <button class="btn-primary" onclick="toggleNewOrderForm()" id="newOrderToggle" style="font-size: 1.1em; padding: 15px 30px;">
+                            ➕ New Order
+                        </button>
+                    </div>
+
+                    <div id="newOrderForm" style="display: none;">
+                        <div class="form-section">
+                            <h2>Customer Information</h2>
+                            <div class="form-group">
+                                <label for="customerName">Customer Name *</label>
+                                <input type="text" id="customerName" placeholder="Enter customer name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerPhone">Phone Number *</label>
+                                <input type="tel" id="customerPhone" placeholder="(555) 123-4567" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="customerAddress">Address *</label>
+                                <textarea id="customerAddress" placeholder="Street address, City, State ZIP" required></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h2>Cookie Selection</h2>
+                            <div class="cookies-grid" id="cookiesGrid"></div>
+                        </div>
+
+                        <div class="form-section">
+                            <h2>Payment Status</h2>
+                            <div class="form-group">
+                                <label style="display: flex; align-items: center; cursor: pointer;">
+                                    <input type="checkbox" id="isPaid" style="width: auto; margin-right: 10px; cursor: pointer;">
+                                    <span>Order is paid in full</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn-primary" onclick="addOrder()">Add Order</button>
+                            <button class="btn-secondary" onclick="clearForm()">Clear Form</button>
+                            <button class="btn-secondary" onclick="toggleNewOrderForm()">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Orders List -->
+                <div class="right-column">
+                    <div class="form-section">
+                        <h2>Actions</h2>
+                        <div class="actions" style="margin-top: 0;">
+                            <button class="btn-secondary" onclick="openOrderOverview()">Order Overview</button>
+                            <label for="importFile" class="btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0; padding: 12px 27.6px; box-sizing: border-box; border-radius: 6px;">
+                                Import Cookie Orders
+                                <input type="file" id="importFile" accept=".xlsx,.xls" style="display: none;" onchange="importOrders(event)">
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="orders-list" id="ordersList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Order Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close" onclick="closeEditModal()">&times;</span>
+                <h2>Edit Order</h2>
+            </div>
+            <div id="editForm">
+                <div class="form-group">
+                    <label for="editCustomerName">Customer Name</label>
+                    <input type="text" id="editCustomerName">
+                </div>
+                <div class="form-group">
+                    <label for="editCustomerPhone">Phone Number</label>
+                    <input type="tel" id="editCustomerPhone">
+                </div>
+                <div class="form-group">
+                    <label for="editCustomerAddress">Address</label>
+                    <textarea id="editCustomerAddress"></textarea>
+                </div>
+                <div id="editCookiesSection" style="display: none;">
+                    <div class="form-group">
+                        <label style="font-weight: 600; color: #2d3748; margin-bottom: 10px; display: block;">Cookie Quantities</label>
+                        <div class="cookies-grid" id="editCookiesGrid"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; cursor: pointer;">
+                        <input type="checkbox" id="editIsPaid" style="width: auto; margin-right: 10px; cursor: pointer;" onchange="toggleEditCookies()">
+                        <span>Order is paid in full</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn-primary" onclick="saveEditOrder()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Overview Modal -->
+    <div id="overviewModal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <span class="close" onclick="closeOrderOverview()">&times;</span>
+                <h2>Order Overview</h2>
+            </div>
+            <div class="table-actions">
+                <button class="btn-primary" onclick="markSelectedAsPaid()">Mark Selected as Paid</button>
+                <button class="btn-secondary" onclick="markSelectedAsUnpaid()">Mark Selected as Unpaid</button>
+                <button class="btn-danger" onclick="deleteSelectedOrders()">Delete Selected</button>
+                <button class="btn-secondary" onclick="selectAllOrders()">Select All</button>
+                <button class="btn-secondary" onclick="deselectAllOrders()">Deselect All</button>
+            </div>
+            <div class="table-container">
+                <table class="overview-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Scout</th>
+                            <th>Customer</th>
+                            <th>Phone</th>
+                            <th>Total Boxes</th>
+                            <th>Total $</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="overviewTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeOrderOverview()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Little Brownie Bakers 2026 Cookie Lineup
+        const cookies = [
+            { name: 'Thin Mints', price: 6.00 },
+            { name: 'Samoas', price: 6.00 },
+            { name: 'Tagalongs', price: 6.00 },
+            { name: 'Do-si-dos', price: 6.00 },
+            { name: 'Trefoils', price: 6.00 },
+            { name: 'Adventurefuls', price: 6.00 },
+            { name: 'Lemon-Ups', price: 6.00 },
+            { name: 'Exploremores', price: 6.00 },
+            { name: 'Toffee-tastic', price: 7.00 },
+            { name: 'Donate', price: 6.00 }
+        ];
+
+        let orders = JSON.parse(localStorage.getItem('gsOrders')) || [];
+        let defaultScoutInfo = JSON.parse(localStorage.getItem('defaultScoutInfo')) || { name: '', qrUrl: '' };
+        let currentEditOrderId = null;
+        
+        // Migration: Add scout info to old orders that don't have it
+        orders = orders.map(order => {
+            if (!order.scout) {
+                order.scout = { name: 'Unknown Scout', qrUrl: '' };
+            }
+            if (order.isPaid === undefined) {
+                order.isPaid = false;
+            }
+            // Ensure ID is always a number (in case of string IDs from imports)
+            if (typeof order.id === 'string') {
+                order.id = parseInt(order.id);
+            }
+            return order;
+        });
+        localStorage.setItem('gsOrders', JSON.stringify(orders));
+        
+        let quantities = {};
+
+        function loadDefaultScoutInfo() {
+            document.getElementById('defaultScoutName').value = defaultScoutInfo.name;
+            document.getElementById('defaultScoutQR').value = defaultScoutInfo.qrUrl;
+        }
+
+        function saveDefaultScoutInfo() {
+            defaultScoutInfo.name = document.getElementById('defaultScoutName').value.trim();
+            defaultScoutInfo.qrUrl = document.getElementById('defaultScoutQR').value.trim();
+            localStorage.setItem('defaultScoutInfo', JSON.stringify(defaultScoutInfo));
+            alert('Default scout information saved!');
+        }
+
+        function applyDefaultsToAll() {
+            if (!defaultScoutInfo.name) {
+                alert('Please set a default scout name first.');
+                return;
+            }
+            
+            if (!confirm('This will update the scout information for ALL orders. Continue?')) {
+                return;
+            }
+
+            orders = orders.map(order => {
+                order.scout.name = defaultScoutInfo.name;
+                order.scout.qrUrl = defaultScoutInfo.qrUrl;
+                return order;
+            });
+
+            localStorage.setItem('gsOrders', JSON.stringify(orders));
+            displayOrders();
+            alert('Scout information updated for all orders!');
+        }
+
+        function initializeCookies() {
+            const grid = document.getElementById('cookiesGrid');
+            grid.innerHTML = '';
+            
+            cookies.forEach((cookie, index) => {
+                quantities[cookie.name] = 0;
+                const div = document.createElement('div');
+                div.className = 'cookie-item';
+                div.innerHTML = `
+                    <div class="cookie-name">${cookie.name}</div>
+                    <div class="quantity-control">
+                        <button onclick="changeQuantity('${cookie.name}', -1)">−</button>
+                        <input type="number" id="qty-${cookie.name}" value="0" min="0" 
+                               onchange="updateQuantity('${cookie.name}', this.value)">
+                        <button onclick="changeQuantity('${cookie.name}', 1)">+</button>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function changeQuantity(cookieName, delta) {
+            quantities[cookieName] = Math.max(0, quantities[cookieName] + delta);
+            document.getElementById(`qty-${cookieName}`).value = quantities[cookieName];
+        }
+
+        function updateQuantity(cookieName, value) {
+            quantities[cookieName] = Math.max(0, parseInt(value) || 0);
+            document.getElementById(`qty-${cookieName}`).value = quantities[cookieName];
+        }
+
+        function addOrder() {
+            const scoutName = document.getElementById('defaultScoutName').value.trim();
+            const scoutQR = document.getElementById('defaultScoutQR').value.trim();
+            const name = document.getElementById('customerName').value.trim();
+            const phone = document.getElementById('customerPhone').value.trim();
+            const address = document.getElementById('customerAddress').value.trim();
+            const isPaid = document.getElementById('isPaid').checked;
+
+            if (!scoutName || !name || !phone || !address) {
+                alert('Please fill in all required fields (Scout Name and Customer Information).');
+                return;
+            }
+
+            const items = cookies
+                .filter(cookie => quantities[cookie.name] > 0)
+                .map(cookie => ({
+                    name: cookie.name,
+                    quantity: quantities[cookie.name],
+                    price: cookie.price,
+                    total: quantities[cookie.name] * cookie.price
+                }));
+
+            if (items.length === 0) {
+                alert('Please select at least one cookie.');
+                return;
+            }
+
+            const total = items.reduce((sum, item) => sum + item.total, 0);
+
+            const order = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                scout: { name: scoutName, qrUrl: scoutQR },
+                customer: { name, phone, address },
+                items,
+                total,
+                isPaid
+            };
+
+            orders.push(order);
+            localStorage.setItem('gsOrders', JSON.stringify(orders));
+            
+            clearForm();
+            displayOrders();
+            
+            alert('Order added successfully!');
+        }
+
+        function clearForm() {
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '';
+            document.getElementById('customerAddress').value = '';
+            document.getElementById('isPaid').checked = false;
+            
+            cookies.forEach(cookie => {
+                quantities[cookie.name] = 0;
+                document.getElementById(`qty-${cookie.name}`).value = 0;
+            });
+        }
+
+        function deleteOrder(orderId) {
+            if (confirm('Are you sure you want to delete this order?')) {
+                orders = orders.filter(order => order.id !== orderId);
+                localStorage.setItem('gsOrders', JSON.stringify(orders));
+                displayOrders();
+            }
+        }
+        
+        // Make functions globally accessible
+        window.deleteOrder = deleteOrder;
+        window.generateReceipt = generateReceipt;
+        window.sortOrders = sortOrders;
+        window.printAllReceipts = printAllReceipts;
+        window.importOrders = importOrders;
+        window.exportOrders = exportOrders;
+        window.saveDefaultScoutInfo = saveDefaultScoutInfo;
+        window.applyDefaultsToAll = applyDefaultsToAll;
+        window.editOrder = editOrder;
+        window.closeEditModal = closeEditModal;
+        window.saveEditOrder = saveEditOrder;
+        window.toggleEditCookies = toggleEditCookies;
+        window.changeEditQuantity = changeEditQuantity;
+        window.updateEditQuantity = updateEditQuantity;
+        window.openOrderOverview = openOrderOverview;
+        window.closeOrderOverview = closeOrderOverview;
+        window.toggleSelectAll = toggleSelectAll;
+        window.selectAllOrders = selectAllOrders;
+        window.deselectAllOrders = deselectAllOrders;
+        window.markSelectedAsPaid = markSelectedAsPaid;
+        window.markSelectedAsUnpaid = markSelectedAsUnpaid;
+        window.deleteSelectedOrders = deleteSelectedOrders;
+        window.toggleNewOrderForm = toggleNewOrderForm;
+
+        function toggleNewOrderForm() {
+            const form = document.getElementById('newOrderForm');
+            const button = document.getElementById('newOrderToggle');
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+                button.textContent = '✖ Close Form';
+            } else {
+                form.style.display = 'none';
+                button.textContent = '➕ New Order';
+                clearForm();
+            }
+        }
+
+        function editOrder(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            currentEditOrderId = orderId;
+
+            // Populate edit form (no scout fields)
+            document.getElementById('editCustomerName').value = order.customer.name;
+            document.getElementById('editCustomerPhone').value = order.customer.phone;
+            document.getElementById('editCustomerAddress').value = order.customer.address;
+            document.getElementById('editIsPaid').checked = order.isPaid;
+
+            // Populate cookie quantities
+            const grid = document.getElementById('editCookiesGrid');
+            grid.innerHTML = '';
+            
+            cookies.forEach(cookie => {
+                const orderItem = order.items.find(item => item.name === cookie.name);
+                const quantity = orderItem ? orderItem.quantity : 0;
+                
+                const div = document.createElement('div');
+                div.className = 'cookie-item';
+                div.innerHTML = `
+                    <div class="cookie-name">${cookie.name}</div>
+                    <div class="quantity-control">
+                        <button onclick="changeEditQuantity('${cookie.name}', -1)">−</button>
+                        <input type="number" id="edit-qty-${cookie.name}" value="${quantity}" min="0" 
+                               onchange="updateEditQuantity('${cookie.name}', this.value)">
+                        <button onclick="changeEditQuantity('${cookie.name}', 1)">+</button>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+
+            // Show/hide cookie editing based on paid status
+            toggleEditCookies();
+
+            // Show modal
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function toggleEditCookies() {
+            const isPaid = document.getElementById('editIsPaid').checked;
+            const cookiesSection = document.getElementById('editCookiesSection');
+            
+            // Only show cookie editing for unpaid orders
+            if (isPaid) {
+                cookiesSection.style.display = 'none';
+            } else {
+                cookiesSection.style.display = 'block';
+            }
+        }
+
+        function changeEditQuantity(cookieName, delta) {
+            const input = document.getElementById(`edit-qty-${cookieName}`);
+            const newValue = Math.max(0, parseInt(input.value || 0) + delta);
+            input.value = newValue;
+        }
+
+        function updateEditQuantity(cookieName, value) {
+            const input = document.getElementById(`edit-qty-${cookieName}`);
+            input.value = Math.max(0, parseInt(value) || 0);
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditOrderId = null;
+        }
+
+        function saveEditOrder() {
+            if (!currentEditOrderId) return;
+
+            const order = orders.find(o => o.id === currentEditOrderId);
+            if (!order) return;
+
+            // Update order (no scout fields - those are global)
+            order.customer.name = document.getElementById('editCustomerName').value.trim();
+            order.customer.phone = document.getElementById('editCustomerPhone').value.trim();
+            order.customer.address = document.getElementById('editCustomerAddress').value.trim();
+            order.isPaid = document.getElementById('editIsPaid').checked;
+
+            // Update cookie quantities if order is unpaid
+            if (!order.isPaid) {
+                const newItems = [];
+                cookies.forEach(cookie => {
+                    const quantity = parseInt(document.getElementById(`edit-qty-${cookie.name}`).value) || 0;
+                    if (quantity > 0) {
+                        newItems.push({
+                            name: cookie.name,
+                            quantity: quantity,
+                            price: cookie.price,
+                            total: quantity * cookie.price
+                        });
+                    }
+                });
+
+                if (newItems.length === 0) {
+                    alert('Order must have at least one cookie.');
+                    return;
+                }
+
+                order.items = newItems;
+                order.total = newItems.reduce((sum, item) => sum + item.total, 0);
+            }
+
+            // Validate
+            if (!order.customer.name || !order.customer.phone || !order.customer.address) {
+                alert('Please fill in all required customer information.');
+                return;
+            }
+
+            localStorage.setItem('gsOrders', JSON.stringify(orders));
+            displayOrders();
+            closeEditModal();
+            alert('Order updated successfully!');
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const editModal = document.getElementById('editModal');
+            const overviewModal = document.getElementById('overviewModal');
+            if (event.target === editModal) {
+                closeEditModal();
+            }
+            if (event.target === overviewModal) {
+                closeOrderOverview();
+            }
+        }
+
+        function openOrderOverview() {
+            // Reload orders from localStorage to ensure we have the latest data
+            orders = JSON.parse(localStorage.getItem('gsOrders')) || [];
+            
+            // Ensure all IDs are numbers
+            orders = orders.map(order => {
+                if (typeof order.id === 'string') {
+                    order.id = parseInt(order.id);
+                }
+                return order;
+            });
+            
+            const tbody = document.getElementById('overviewTableBody');
+            tbody.innerHTML = '';
+
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px; color: #718096;">No orders found.</td></tr>';
+            } else {
+                orders.forEach(order => {
+                    const date = new Date(order.date).toLocaleDateString('en-US');
+                    const totalBoxes = order.items.reduce((sum, item) => sum + item.quantity, 0);
+                    const statusBadge = order.isPaid 
+                        ? '<span class="status-badge status-paid">PAID</span>' 
+                        : '<span class="status-badge status-unpaid">UNPAID</span>';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><input type="checkbox" class="order-checkbox" data-order-id="${order.id}"></td>
+                        <td>${order.id}</td>
+                        <td>${date}</td>
+                        <td>${order.scout.name}</td>
+                        <td>${order.customer.name}</td>
+                        <td>${order.customer.phone}</td>
+                        <td>${totalBoxes}</td>
+                        <td>$${order.total.toFixed(2)}</td>
+                        <td>${statusBadge}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            document.getElementById('selectAllCheckbox').checked = false;
+            document.getElementById('overviewModal').style.display = 'block';
+        }
+
+        function closeOrderOverview() {
+            document.getElementById('overviewModal').style.display = 'none';
+        }
+
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAllCheckbox').checked;
+            document.querySelectorAll('.order-checkbox').forEach(checkbox => {
+                checkbox.checked = selectAll;
+            });
+        }
+
+        function selectAllOrders() {
+            document.getElementById('selectAllCheckbox').checked = true;
+            document.querySelectorAll('.order-checkbox').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+        }
+
+        function deselectAllOrders() {
+            document.getElementById('selectAllCheckbox').checked = false;
+            document.querySelectorAll('.order-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+
+        function getSelectedOrderIds() {
+            const selectedIds = [];
+            document.querySelectorAll('.order-checkbox:checked').forEach(checkbox => {
+                selectedIds.push(parseInt(checkbox.getAttribute('data-order-id')));
+            });
+            return selectedIds;
+        }
+
+        function markSelectedAsPaid() {
+            const selectedIds = getSelectedOrderIds();
+            if (selectedIds.length === 0) {
+                alert('Please select at least one order.');
+                return;
+            }
+
+            // Reload orders from localStorage to ensure we have the latest data
+            orders = JSON.parse(localStorage.getItem('gsOrders')) || [];
+            
+            // Update the orders
+            let updatedCount = 0;
+            orders = orders.map(order => {
+                if (selectedIds.includes(order.id)) {
+                    order.isPaid = true;
+                    updatedCount++;
+                }
+                return order;
+            });
+
+            // Save back to localStorage
+            localStorage.setItem('gsOrders', JSON.stringify(orders));
+            
+            // Refresh displays
+            openOrderOverview();
+            displayOrders();
+            
+            alert(`${updatedCount} order(s) marked as paid.`);
+        }
+
+        function markSelectedAsUnpaid() {
+            const selectedIds = getSelectedOrderIds();
+            if (selectedIds.length === 0) {
+                alert('Please select at least one order.');
+                return;
+            }
+
+            // Reload orders from localStorage to ensure we have the latest data
+            orders = JSON.parse(localStorage.getItem('gsOrders')) || [];
+            
+            // Update the orders
+            let updatedCount = 0;
+            orders = orders.map(order => {
+                if (selectedIds.includes(order.id)) {
+                    order.isPaid = false;
+                    updatedCount++;
+                }
+                return order;
+            });
+
+            // Save back to localStorage
+            localStorage.setItem('gsOrders', JSON.stringify(orders));
+            
+            // Refresh displays
+            openOrderOverview();
+            displayOrders();
+            
+            alert(`${updatedCount} order(s) marked as unpaid.`);
+        }
+
+        function deleteSelectedOrders() {
+            const selectedIds = getSelectedOrderIds();
+            if (selectedIds.length === 0) {
+                alert('Please select at least one order.');
+                return;
+            }
+
+            if (!confirm(`Are you sure you want to delete ${selectedIds.length} order(s)? This action cannot be undone.`)) {
+                return;
+            }
+
+            // Reload orders from localStorage to ensure we have the latest data
+            orders = JSON.parse(localStorage.getItem('gsOrders')) || [];
+            
+            // Filter out deleted orders
+            orders = orders.filter(order => !selectedIds.includes(order.id));
+            
+            // Save back to localStorage
+            localStorage.setItem('gsOrders', JSON.stringify(orders));
+            
+            // Refresh displays
+            openOrderOverview();
+            displayOrders();
+            
+            alert(`${selectedIds.length} order(s) deleted.`);
+        }
+
+        function importOrders(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(firstSheet);
+
+                    let importedCount = 0;
+                    let errors = [];
+
+                    rows.forEach((row, index) => {
+                        try {
+                            // Parse items from cookie columns
+                            const items = [];
+                            cookies.forEach(cookie => {
+                                const quantity = parseInt(row[cookie.name]) || 0;
+                                if (quantity > 0) {
+                                    items.push({
+                                        name: cookie.name,
+                                        quantity: quantity,
+                                        price: cookie.price,
+                                        total: quantity * cookie.price
+                                    });
+                                }
+                            });
+
+                            if (items.length === 0) {
+                                errors.push(`Row ${index + 2}: No cookies ordered`);
+                                return;
+                            }
+
+                            const total = items.reduce((sum, item) => sum + item.total, 0);
+
+                            // Parse the date properly (MM/DD/YYYY format)
+                            let orderDate = new Date().toISOString();
+                            if (row['Order Date']) {
+                                const dateStr = row['Order Date'];
+                                // Check if it's already a Date object from Excel
+                                if (dateStr instanceof Date) {
+                                    orderDate = dateStr.toISOString();
+                                } else if (typeof dateStr === 'string') {
+                                    // Parse MM/DD/YYYY format
+                                    const parts = dateStr.split('/');
+                                    if (parts.length === 3) {
+                                        const month = parseInt(parts[0]) - 1; // JS months are 0-indexed
+                                        const day = parseInt(parts[1]);
+                                        const year = parseInt(parts[2]);
+                                        orderDate = new Date(year, month, day).toISOString();
+                                    }
+                                } else if (typeof dateStr === 'number') {
+                                    // Excel serial date
+                                    const excelEpoch = new Date(1899, 11, 30);
+                                    const date = new Date(excelEpoch.getTime() + dateStr * 86400000);
+                                    orderDate = date.toISOString();
+                                }
+                            }
+
+                            const order = {
+                                id: row['Order Number'] ? parseInt(row['Order Number']) : (Date.now() + index),
+                                date: orderDate,
+                                scout: {
+                                    name: defaultScoutInfo.name || 'Unknown Scout',
+                                    qrUrl: defaultScoutInfo.qrUrl || ''
+                                },
+                                customer: {
+                                    name: row['Deliver To'] || '',
+                                    phone: row['Customer Phone'] || '',
+                                    address: row['Delivery Address'] || ''
+                                },
+                                items: items,
+                                total: total,
+                                isPaid: false // Default to unpaid for imported orders
+                            };
+
+                            // Validate required fields
+                            if (!order.customer.name || !order.customer.phone || !order.customer.address) {
+                                errors.push(`Row ${index + 2}: Missing required customer information (Deliver To, Customer Phone, or Delivery Address)`);
+                                return;
+                            }
+
+                            orders.push(order);
+                            importedCount++;
+                        } catch (err) {
+                            errors.push(`Row ${index + 2}: ${err.message}`);
+                        }
+                    });
+
+                    localStorage.setItem('gsOrders', JSON.stringify(orders));
+                    displayOrders();
+
+                    let message = `Successfully imported ${importedCount} order(s).`;
+                    if (errors.length > 0) {
+                        message += `\n\nErrors:\n${errors.join('\n')}`;
+                    }
+                    alert(message);
+
+                    // Reset file input
+                    event.target.value = '';
+                } catch (err) {
+                    alert('Error reading file: ' + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function exportOrders() {
+            if (orders.length === 0) {
+                alert('No orders to export.');
+                return;
+            }
+
+            // Create export data
+            const exportData = orders.map(order => {
+                const row = {
+                    'Order ID': order.id,
+                    'Date': new Date(order.date).toLocaleDateString('en-US'),
+                    'Scout Name': order.scout.name,
+                    'Scout QR URL': order.scout.qrUrl,
+                    'Customer Name': order.customer.name,
+                    'Customer Phone': order.customer.phone,
+                    'Customer Address': order.customer.address
+                };
+
+                // Add cookie columns
+                cookies.forEach(cookie => {
+                    const item = order.items.find(i => i.name === cookie.name);
+                    row[cookie.name] = item ? item.quantity : 0;
+                });
+
+                row['Total'] = order.total;
+                row['Is Paid'] = order.isPaid ? 'Yes' : 'No';
+                row['Balance Due'] = order.isPaid ? 0 : order.total;
+
+                return row;
+            });
+
+            // Create workbook
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Orders");
+
+            // Save file
+            const fileName = `cookie-orders-${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        function sortOrders(sortBy) {
+            if (sortBy === 'name') {
+                orders.sort((a, b) => a.customer.name.localeCompare(b.customer.name));
+            } else if (sortBy === 'boxes') {
+                orders.sort((a, b) => {
+                    const boxesA = a.items.reduce((sum, item) => sum + item.quantity, 0);
+                    const boxesB = b.items.reduce((sum, item) => sum + item.quantity, 0);
+                    return boxesB - boxesA; // High to low
+                });
+            } else {
+                // Sort by date (newest first)
+                orders.sort((a, b) => new Date(b.date) - new Date(a.date));
+            }
+            displayOrders();
+        }
+
+        function printAllReceipts() {
+            if (orders.length === 0) {
+                alert('No orders to print.');
+                return;
+            }
+
+            // Cookie image URLs
+            const cookieImages = {
+                'Thin Mints': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/TM_1cookie_128972_RGB_3in.jpg',
+                'Samoas': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/SAM_1cookie_v2_129021_RGB_3in.jpg',
+                'Tagalongs': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2023-12/TAG_1cookie_129466_RGB_3in.jpg',
+                'Do-si-dos': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/DSD_1cookie_V2_128857_RGB_3in.jpg',
+                'Trefoils': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/_On%20White_Template.jpg',
+                'Adventurefuls': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/ADV_1cookie_129035_RGB_3in.jpg',
+                'Lemon-Ups': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/LU_1cookie_Innovator_157259_RGB_3in_LBB.jpg',
+                'Exploremores': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2025-08/EXP_1Cookie_Flat_White_3in_RGB_Logo.jpg',
+                'Toffee-tastic': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/TT_157358_Overhead_RGB_3in_LBB.jpg',
+                'Donate': 'https://www.girlscoutsdiamonds.org/content/dam/girlscoutsdiamonds-redesign/images/council-logo/Trefoil_2021_green.png'
+            };
+
+            const printWindow = window.open('', '_blank');
+            
+            if (!printWindow) {
+                alert('Please allow popups for this site to print receipts. Check your browser settings.');
+                return;
+            }
+            
+            // Small delay to ensure window is ready
+            setTimeout(() => {
+                printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Print All Receipts</title>
+                    <style>
+                        @page {
+                            size: A4;
+                            margin: 0;
+                        }
+                        
+                        body {
+                            font-family: 'Courier New', monospace;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        
+                        .page {
+                            width: 210mm;
+                            height: 297mm;
+                            page-break-after: always;
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            grid-template-rows: 1fr 1fr;
+                            gap: 0;
+                        }
+                        
+                        .receipt {
+                            border: 1px dashed #000;
+                            padding: 10mm;
+                            font-size: 9pt;
+                            box-sizing: border-box;
+                            overflow: hidden;
+                        }
+                        
+                        .receipt-header {
+                            text-align: center;
+                            margin-bottom: 8px;
+                            border-bottom: 1px solid #000;
+                            padding-bottom: 8px;
+                        }
+                        
+                        .receipt-header h2 {
+                            font-size: 14pt;
+                            margin: 0 0 3px 0;
+                        }
+                        
+                        .receipt-header p {
+                            margin: 2px 0;
+                            font-size: 8pt;
+                        }
+                        
+                        .section {
+                            margin-bottom: 8px;
+                        }
+                        
+                        .section h3 {
+                            border-bottom: 1px solid #000;
+                            padding-bottom: 2px;
+                            margin: 0 0 4px 0;
+                            font-size: 10pt;
+                        }
+                        
+                        .section p {
+                            margin: 2px 0;
+                            font-size: 8pt;
+                        }
+                        
+                        .line {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 3px;
+                            font-size: 8pt;
+                        }
+                        
+                        .total {
+                            border-top: 1px solid #000;
+                            margin-top: 6px;
+                            padding-top: 4px;
+                            font-size: 10pt;
+                            font-weight: bold;
+                        }
+                        
+                        .balance-due {
+                            border-top: 1px solid #000;
+                            margin-top: 3px;
+                            padding-top: 3px;
+                            font-size: 10pt;
+                            font-weight: bold;
+                        }
+                        
+                        .footer {
+                            text-align: center;
+                            margin-top: 8px;
+                            padding-top: 6px;
+                            border-top: 1px solid #000;
+                            font-size: 7pt;
+                        }
+                        
+                        .footer p {
+                            margin: 2px 0;
+                        }
+                        
+                        .thank-you-banner {
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            text-align: center;
+                            padding: 6px;
+                            margin: 6px 0;
+                            border-radius: 4px;
+                            font-size: 9pt;
+                            font-weight: bold;
+                        }
+                        
+                        .cookie-item-line {
+                            display: flex;
+                            align-items: center;
+                            margin-bottom: 2px;
+                            font-size: 7pt;
+                        }
+                        
+                        .cookie-item-line img {
+                            width: 16px;
+                            height: 16px;
+                            margin-right: 4px;
+                            border-radius: 2px;
+                        }
+                        
+                        .cookie-item-content {
+                            display: flex;
+                            justify-content: space-between;
+                            flex: 1;
+                        }
+                        
+                        .cookie-grid {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 2px 8px;
+                        }
+                        
+                        .info-columns {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 10px;
+                            margin-bottom: 8px;
+                        }
+                        
+                        .info-column {
+                            min-width: 0;
+                        }
+                        
+                        @media print {
+                            .no-print {
+                                display: none;
+                            }
+                        }
+                        
+                        .print-button {
+                            position: fixed;
+                            top: 20px;
+                            right: 20px;
+                            padding: 10px 30px;
+                            background: #667eea;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            font-size: 1em;
+                            cursor: pointer;
+                            z-index: 1000;
+                        }
+                        
+                        .print-button:hover {
+                            background: #5568d3;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <button class="print-button no-print" onclick="window.print()">Print All Receipts</button>
+            `);
+
+            // Group orders into pages of 4
+            for (let i = 0; i < orders.length; i += 4) {
+                printWindow.document.write('<div class="page">');
+                
+                for (let j = i; j < Math.min(i + 4, orders.length); j++) {
+                    const order = orders[j];
+                    const date = new Date(order.date).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    printWindow.document.write(`
+                        <div class="receipt">
+                            <div class="receipt-header">
+                                <img src="https://www.girlscoutsww.org/content/dam/girlscoutsww-redesign/images/council-logo/girlscoutsww-green.png" alt="Girl Scouts" style="max-width: 120px; margin: 0 auto 5px auto; display: block;">
+                                <p style="font-size: 9pt; font-weight: bold; margin: 3px 0;">Cookie Order Receipt</p>
+                            </div>
+
+                            <div class="thank-you-banner">
+                                ✨ Thank you for your order! ✨
+                            </div>
+
+                            <div class="info-columns">
+                                <div class="info-column">
+                                    <div class="section">
+                                        <h3>Scout</h3>
+                                        <p><strong>${order.scout.name}</strong></p>
+                                        ${order.scout.qrUrl ? `
+                                        <div style="text-align: center; margin-top: 5px;">
+                                            <div id="qrcode-${j}" style="display: inline-block;"></div>
+                                            <p style="margin-top: 3px; font-size: 6pt; font-weight: bold;">Scan me to order more cookies!</p>
+                                        </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+
+                                <div class="info-column">
+                                    <div class="section">
+                                        <h3>Customer</h3>
+                                        <p>${order.customer.name}</p>
+                                        <p>${order.customer.phone}</p>
+                                        <p>${order.customer.address}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <h3>Items</h3>
+                                <div class="cookie-grid">
+                                    ${order.items.map(item => `
+                                        <div class="cookie-item-line">
+                                            <img src="${cookieImages[item.name]}" alt="${item.name}">
+                                            <div class="cookie-item-content">
+                                                <span>${item.name} (x${item.quantity})</span>
+                                                <span>$${item.total.toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="line total">
+                                <span>TOTAL:</span>
+                                <span>$${order.total.toFixed(2)}</span>
+                            </div>
+
+                            <div class="line balance-due" style="${order.isPaid ? 'color: #48bb78;' : 'color: #f56565;'}">
+                                <span>BALANCE DUE:</span>
+                                <span>${order.isPaid ? '$0.00' : '$' + order.total.toFixed(2)}</span>
+                            </div>
+
+                            <div class="footer">
+                                <p>Thank you for supporting Girl Scouts!</p>
+                                <img src="https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2025-08/Ferret%205.png" alt="Little Brownie Bakers" style="max-width: 80px; margin-top: 4px;">
+                            </div>
+                        </div>
+                    `);
+                }
+                
+                printWindow.document.write('</div>');
+            }
+
+            printWindow.document.write(`
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+
+            // Generate QR codes after document is ready
+            if (orders.some(o => o.scout.qrUrl)) {
+                setTimeout(() => {
+                    const script = printWindow.document.createElement('script');
+                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+                    script.onload = () => {
+                        for (let i = 0; i < orders.length; i++) {
+                            const order = orders[i];
+                            if (order.scout.qrUrl) {
+                                const qrcodeDiv = printWindow.document.getElementById(`qrcode-${i}`);
+                                if (qrcodeDiv) {
+                                    new printWindow.QRCode(qrcodeDiv, {
+                                        text: order.scout.qrUrl,
+                                        width: 60,
+                                        height: 60,
+                                        colorDark: "#000000",
+                                        colorLight: "#ffffff",
+                                        correctLevel: printWindow.QRCode.CorrectLevel.H
+                                    });
+                                }
+                            }
+                        }
+                    };
+                    printWindow.document.head.appendChild(script);
+                }, 200);
+            }
+            }, 100); // 100ms delay
+        }
+
+        function generateReceipt(orderId) {
+            // Ensure orderId is a number for comparison
+            const id = typeof orderId === 'string' ? parseInt(orderId) : orderId;
+            const order = orders.find(o => o.id === id);
+            if (!order) {
+                alert('Order not found. Please refresh the page and try again.');
+                return;
+            }
+
+            // Cookie image URLs (using placeholder images - you can replace with actual cookie images)
+            const cookieImages = {
+                'Thin Mints': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/TM_1cookie_128972_RGB_3in.jpg',
+                'Samoas': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/SAM_1cookie_v2_129021_RGB_3in.jpg',
+                'Tagalongs': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2023-12/TAG_1cookie_129466_RGB_3in.jpg',
+                'Do-si-dos': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/DSD_1cookie_V2_128857_RGB_3in.jpg',
+                'Trefoils': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/_On%20White_Template.jpg',
+                'Adventurefuls': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/ADV_1cookie_129035_RGB_3in.jpg',
+                'Lemon-Ups': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/LU_1cookie_Innovator_157259_RGB_3in_LBB.jpg',
+                'Exploremores': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2025-08/EXP_1Cookie_Flat_White_3in_RGB_Logo.jpg',
+                'Toffee-tastic': 'https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2024-07/TT_157358_Overhead_RGB_3in_LBB.jpg',
+                'Donate': 'https://via.placeholder.com/40x40/FF69B4/ffffff?text=♥'
+            };
+
+            const receiptWindow = window.open('', '_blank');
+            const date = new Date(order.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            receiptWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Receipt - Order #${order.id}</title>
+                    <style>
+                        body {
+                            font-family: 'Courier New', monospace;
+                            max-width: 600px;
+                            margin: 40px auto;
+                            padding: 20px;
+                        }
+                        .receipt-header {
+                            text-align: center;
+                            margin-bottom: 30px;
+                            border-bottom: 2px solid #000;
+                            padding-bottom: 20px;
+                        }
+                        .receipt-header h2 {
+                            font-size: 1.5em;
+                            margin-bottom: 10px;
+                        }
+                        .section {
+                            margin-bottom: 20px;
+                        }
+                        .section h3 {
+                            border-bottom: 1px solid #000;
+                            padding-bottom: 5px;
+                            margin-bottom: 10px;
+                        }
+                        .line {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 8px;
+                        }
+                        .total {
+                            border-top: 2px solid #000;
+                            margin-top: 20px;
+                            padding-top: 10px;
+                            font-size: 1.2em;
+                            font-weight: bold;
+                        }
+                        .footer {
+                            text-align: center;
+                            margin-top: 30px;
+                            padding-top: 20px;
+                            border-top: 1px solid #000;
+                            font-size: 0.9em;
+                        }
+                        @media print {
+                            button { display: none; }
+                        }
+                        .print-button {
+                            display: block;
+                            margin: 20px auto;
+                            padding: 10px 30px;
+                            background: #667eea;
+                            color: white;
+                            border: none;
+                            border-radius: 6px;
+                            font-size: 1em;
+                            cursor: pointer;
+                        }
+                        .print-button:hover {
+                            background: #5568d3;
+                        }
+                        .qr-section {
+                            text-align: center;
+                            margin: 20px 0;
+                            padding: 20px;
+                            background: #f7fafc;
+                            border-radius: 8px;
+                        }
+                        .qr-section h3 {
+                            margin-bottom: 10px;
+                        }
+                        #qrcode {
+                            display: inline-block;
+                            margin: 10px auto;
+                        }
+                        .thank-you-banner {
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            color: white;
+                            text-align: center;
+                            padding: 20px;
+                            margin: 20px 0;
+                            border-radius: 8px;
+                            font-size: 1.3em;
+                            font-weight: bold;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        }
+                        .cookie-item-line {
+                            display: flex;
+                            align-items: center;
+                            margin-bottom: 3px;
+                        }
+                        .cookie-item-line img {
+                            width: 25px;
+                            height: 25px;
+                            margin-right: 6px;
+                            border-radius: 4px;
+                        }
+                        .cookie-item-content {
+                            display: flex;
+                            justify-content: space-between;
+                            flex: 1;
+                            font-size: 0.9em;
+                        }
+                        .cookie-grid {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 5px 15px;
+                        }
+                        .info-columns {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 20px;
+                            margin-bottom: 20px;
+                        }
+                        .info-column {
+                            min-width: 0;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="receipt-header">
+                        <img src="https://www.girlscoutsww.org/content/dam/girlscoutsww-redesign/images/council-logo/girlscoutsww-green.png" alt="Girl Scouts" style="max-width: 200px; margin: 0 auto 10px auto; display: block;">
+                        <p style="font-size: 1.2em; font-weight: bold; margin: 5px 0;">Cookie Order Receipt</p>
+                    </div>
+
+                    <div class="thank-you-banner">
+                        ✨ Thank you for your order! ✨
+                    </div>
+
+                    <div class="info-columns">
+                        <div class="info-column">
+                            <div class="section">
+                                <h3>Scout Information</h3>
+                                <p><strong>${order.scout.name}</strong></p>
+                                ${order.scout.qrUrl ? `
+                                <div style="text-align: center; margin-top: 10px;">
+                                    <div id="qrcode" style="display: inline-block;"></div>
+                                    <p style="margin-top: 8px; font-size: 0.85em; font-weight: bold;">Scan me to order more cookies!</p>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <div class="info-column">
+                            <div class="section">
+                                <h3>Customer</h3>
+                                <p>${order.customer.name}</p>
+                                <p>${order.customer.phone}</p>
+                                <p>${order.customer.address}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h3>Items</h3>
+                        <div class="cookie-grid">
+                            ${order.items.map(item => `
+                                <div class="cookie-item-line">
+                                    <img src="${cookieImages[item.name]}" alt="${item.name}">
+                                    <div class="cookie-item-content">
+                                        <span>${item.name} (x${item.quantity})</span>
+                                        <span>$${item.total.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="line total">
+                        <span>TOTAL:</span>
+                        <span>$${order.total.toFixed(2)}</span>
+                    </div>
+
+                    <div class="line total" style="border-top: 1px solid #000; margin-top: 10px; padding-top: 10px; ${order.isPaid ? 'color: #48bb78;' : 'color: #f56565;'}">
+                        <span>BALANCE DUE:</span>
+                        <span>${order.isPaid ? '$0.00' : '$' + order.total.toFixed(2)}</span>
+                    </div>
+
+                    <div class="footer">
+                        <p>Thank you for supporting Girl Scouts!</p>
+                        <p>Every purchase helps girls learn, grow, and thrive.</p>
+                        <img src="https://ferrero-kube-stack-prod-static.s3.eu-west-1.amazonaws.com/littlebrowniebakers-com/s3fs-public/2025-08/Ferret%205.png" alt="Little Brownie Bakers" style="max-width: 200px; margin-top: 15px;">
+                    </div>
+
+                    <button class="print-button" onclick="window.print()">Print Receipt</button>
+
+                    ${order.scout.qrUrl ? `
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"><` + `/script>
+                    <script>
+                        new QRCode(document.getElementById("qrcode"), {
+                            text: "${order.scout.qrUrl}",
+                            width: 150,
+                            height: 150,
+                            colorDark: "#000000",
+                            colorLight: "#ffffff",
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    <` + `/script>
+                    ` : ''}
+                </body>
+                </html>
+            `);
+            receiptWindow.document.close();
+        }
+
+        function displayOrders() {
+            const container = document.getElementById('ordersList');
+            
+            if (orders.length === 0) {
+                container.innerHTML = '<div class="no-orders"><p>No orders yet. Add your first order above!</p></div>';
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="form-section">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0;">Orders (${orders.length})</h2>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <label style="display: flex; align-items: center; gap: 5px; margin: 0;">
+                                <span style="font-weight: 600;">Sort by:</span>
+                                <select id="sortOrder" onchange="sortOrders(this.value)" style="padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 1em;">
+                                    <option value="date">Date (newest first)</option>
+                                    <option value="name">Customer Name (A-Z)</option>
+                                    <option value="boxes">Total Boxes (high to low)</option>
+                                </select>
+                            </label>
+                            <button class="btn-secondary" onclick="printAllReceipts()">Print All (4/page)</button>
+                        </div>
+                    </div>
+                    ${orders.map(order => {
+                        const date = new Date(order.date).toLocaleDateString('en-US');
+                        return `
+                            <div class="order-card">
+                                <div class="order-header">
+                                    <div class="order-info">
+                                        <h3>${order.customer.name}</h3>
+                                        <p>Scout: ${order.scout.name}</p>
+                                        <p>${order.customer.phone} • ${date}</p>
+                                    </div>
+                                    <div class="order-actions">
+                                        <button class="btn-secondary" onclick="editOrder(${order.id})">Edit</button>
+                                        <button class="btn-secondary" onclick="generateReceipt(${order.id})">Receipt</button>
+                                        <button class="btn-danger" onclick="deleteOrder(${order.id})">Delete</button>
+                                    </div>
+                                </div>
+                                <div class="order-items">
+                                    ${order.items.map(item => `
+                                        <div class="order-item">
+                                            <strong>${item.name}</strong><br>
+                                            ${item.quantity} boxes × $${item.price.toFixed(2)}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div class="order-total">
+                                    Total: $${order.total.toFixed(2)} | Balance Due: ${order.isPaid ? '<span style="color: #48bb78; font-weight: bold;">$0.00</span>' : `<span style="color: #f56565; font-weight: bold;">$${order.total.toFixed(2)}</span>`}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // Initialize on page load
+        loadDefaultScoutInfo();
+        initializeCookies();
+        displayOrders();
+    </script>
+</body>
+</html>
