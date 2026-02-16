@@ -159,6 +159,25 @@
                 width: 100%;
             }
             
+            /* Reduce button borders by 75% on mobile */
+            button,
+            .btn-primary,
+            .btn-secondary,
+            .btn-danger,
+            label.btn-secondary {
+                border-radius: 1.5px !important;
+            }
+            
+            /* Make import button two lines on mobile */
+            label.btn-secondary[for="importFile"] {
+                height: auto;
+                min-height: 60px;
+                white-space: normal;
+                text-align: center;
+                line-height: 1.3;
+                padding: 15px 20px !important;
+            }
+            
             .info-columns {
                 grid-template-columns: 1fr;
                 gap: 10px;
@@ -705,7 +724,7 @@
                         <div class="actions" style="margin-top: 0;">
                             <button class="btn-secondary" onclick="openOrderOverview()">Order Overview</button>
                             <label for="importFile" class="btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin: 0; padding: 12px 27.6px; box-sizing: border-box; border-radius: 6px;">
-                                Import Cookie Orders
+                                Import Orders
                                 <input type="file" id="importFile" accept=".xlsx,.xls" style="display: none;" onchange="importOrders(event)">
                             </label>
                         </div>
