@@ -2061,19 +2061,17 @@
 
             container.innerHTML = `
                 <div class="form-section">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0;">Orders (${orders.length})</h2>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <label style="display: flex; align-items: center; gap: 5px; margin: 0;">
-                                <span style="font-weight: 600;">Sort by:</span>
-                                <select id="sortOrder" onchange="sortOrders(this.value)" style="padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 1em;">
-                                    <option value="date">Date (newest first)</option>
-                                    <option value="name">Customer Name (A-Z)</option>
-                                    <option value="boxes">Total Boxes (high to low)</option>
-                                </select>
-                            </label>
-                            <button class="btn-secondary" onclick="printAllReceipts()">Print All (4/page)</button>
-                        </div>
+                    <h2 style="margin: 0 0 20px 0;">Orders (${orders.length})</h2>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <label style="display: flex; align-items: center; gap: 5px; margin: 0;">
+                            <span style="font-weight: 600;">Sort by:</span>
+                            <select id="sortOrder" onchange="sortOrders(this.value)" style="padding: 8px; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 1em;">
+                                <option value="date">Date (newest first)</option>
+                                <option value="name">Customer Name (A-Z)</option>
+                                <option value="boxes">Total Boxes (high to low)</option>
+                            </select>
+                        </label>
+                        <button class="btn-secondary" onclick="printAllReceipts()">Print All (4/page)</button>
                     </div>
                     ${orders.map(order => {
                         const date = new Date(order.date).toLocaleDateString('en-US');
