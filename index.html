@@ -18,6 +18,7 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden;
         }
 
         .container {
@@ -27,6 +28,8 @@
             border-radius: 12px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         header {
@@ -110,6 +113,73 @@
             
             .info-columns {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .form-section {
+                padding: 15px;
+            }
+            
+            .cookies-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .cookie-item {
+                padding: 10px;
+            }
+            
+            .actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .actions button,
+            .actions label {
+                width: 100%;
+            }
+            
+            .info-columns {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+                margin: 10% auto;
+            }
+            
+            .modal-content.large {
+                width: 95%;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+            
+            .overview-table {
+                font-size: 0.85em;
             }
         }
 
