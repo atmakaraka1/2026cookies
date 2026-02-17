@@ -224,6 +224,33 @@
             .order-card {
                 overflow: hidden;
             }
+            
+            /* Order overview modal mobile styles */
+            .table-actions {
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px;
+            }
+            
+            .table-actions button {
+                width: 100%;
+                font-size: 0.9em;
+                padding: 10px;
+            }
+            
+            .overview-table th,
+            .overview-table td {
+                padding: 8px 4px;
+                font-size: 0.75em;
+            }
+            
+            .overview-table th:first-child,
+            .overview-table td:first-child {
+                position: sticky;
+                left: 0;
+                background: white;
+                z-index: 1;
+            }
         }
 
         .form-section {
